@@ -105,6 +105,9 @@ update msg model =
     SurpriseMe -> (model, Random.generate SelectByIndex randomPhotoIndexPicker)
     SelectByIndex index ->
       let
+        newSelectedPhoto : Maybe Photo
+        newSelectedPhoto = Array.get index (Array.fromList model.photos)
+
         newSelectedUrl : Maybe String
         newSelectedUrl =
           model.photos
