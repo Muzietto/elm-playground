@@ -50,12 +50,6 @@ urlPrefix = "http://elm-in-action.com/"
 terno : Bool -> String -> String -> String
 terno exp trueCond falseCond = if exp then trueCond else falseCond
 
-unwrapMaybeString : Maybe String -> String
-unwrapMaybeString maybeString =
-  case maybeString of
-    Just stringa -> stringa
-    Nothing -> ""
-
 randomPhotoIndexPicker : Random.Generator Int
 randomPhotoIndexPicker = Random.int 0 (Array.length photoArray - 1)
 
@@ -113,7 +107,7 @@ update msg model =
           |> Array.fromList
           |> Array.get index
           |> Maybe.map .url
-            in ({model | selectedUrl = unwrapMaybeString newSelectedUrl}, Cmd.none)
+            in ({model | selectedUrl = Maybe.withDefault "" newSelectedUrl}, Cmd.none)
     SetSize thumbnailSize -> ({model | chosenSize = thumbnailSize}, Cmd.none)
 
 main = Html.program {

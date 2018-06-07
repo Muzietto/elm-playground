@@ -9062,14 +9062,6 @@ var _user$project$PhotoGroove$sizeToString = function (size) {
 			return 'large';
 	}
 };
-var _user$project$PhotoGroove$unwrapMaybeString = function (maybeString) {
-	var _p1 = maybeString;
-	if (_p1.ctor === 'Just') {
-		return _p1._0;
-	} else {
-		return '';
-	}
-};
 var _user$project$PhotoGroove$terno = F3(
 	function (exp, trueCond, falseCond) {
 		return exp ? trueCond : falseCond;
@@ -9102,9 +9094,9 @@ var _user$project$PhotoGroove$initialModel = {
 };
 var _user$project$PhotoGroove$photoArray = _elm_lang$core$Array$fromList(_user$project$PhotoGroove$initialModel.photos);
 var _user$project$PhotoGroove$getPhotoUrl = function (index) {
-	var _p2 = A2(_elm_lang$core$Array$get, index, _user$project$PhotoGroove$photoArray);
-	if (_p2.ctor === 'Just') {
-		return _p2._0.url;
+	var _p1 = A2(_elm_lang$core$Array$get, index, _user$project$PhotoGroove$photoArray);
+	if (_p1.ctor === 'Just') {
+		return _p1._0.url;
 	} else {
 		return '';
 	}
@@ -9160,14 +9152,14 @@ var _user$project$PhotoGroove$SelectByIndex = function (a) {
 };
 var _user$project$PhotoGroove$update = F2(
 	function (msg, model) {
-		var _p3 = msg;
-		switch (_p3.ctor) {
+		var _p2 = msg;
+		switch (_p2.ctor) {
 			case 'SelectByUrl':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{selectedUrl: _p3._0}),
+						{selectedUrl: _p2._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'SurpriseMe':
@@ -9184,14 +9176,14 @@ var _user$project$PhotoGroove$update = F2(
 					},
 					A2(
 						_elm_lang$core$Array$get,
-						_p3._0,
+						_p2._0,
 						_elm_lang$core$Array$fromList(model.photos)));
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							selectedUrl: _user$project$PhotoGroove$unwrapMaybeString(newSelectedUrl)
+							selectedUrl: A2(_elm_lang$core$Maybe$withDefault, '', newSelectedUrl)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -9200,7 +9192,7 @@ var _user$project$PhotoGroove$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{chosenSize: _p3._0}),
+						{chosenSize: _p2._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}
