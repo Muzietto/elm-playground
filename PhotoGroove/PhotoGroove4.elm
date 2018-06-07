@@ -5,18 +5,25 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Array exposing (Array)
 import Random
+import Http
+import Json.Decode exposing (list, bool, string, int)
 
 -- type Bool = True | False
 -- type Maybe valueType = Just valueType | Nothing
+
 type ThumbnailSize = Small | Medium | Large
---type MsgData = ThumbnailSize | String
 type Msg =
     SelectByUrl String
   | SurpriseMe
   | SelectByIndex Int
   | SetSize ThumbnailSize
+  | LoadPhotos (Result Http.Error (List Photo))
 
-type alias Photo = {url : String}
+type alias Photo = {
+  url : String,
+  size : Int,
+  title : String
+}
 type alias Model = {
   photos : List Photo,
   selectedUrl : Maybe String,
@@ -33,6 +40,13 @@ initialModel = {
     chosenSize = Medium
   }
 
+photoDecoder : Decoder Photo
+photoDecoder = map3
+  Photo --(\url size title -> {url = url, size = size, title = title})
+  (field "url" string)
+  (field "size" int)
+  (field "title" string)
+
 photoArray : Array Photo
 photoArray = Array.fromList initialModel.photos
 
@@ -45,11 +59,28 @@ getPhotoUrl index =
 urlPrefix : String
 urlPrefix = "http://elm-in-action.com/"
 
+-- type Result errValueType okValueType = Err errValueType | Ok okValueType
+-- Http.send : (Result Http.Error okValueType -> msg) -> Request okValueType -> Cmd msg
+initialCmd : Cmd Msg
+initialCmd =
+  Http.send
+    -- LoadPhotos : Result Http.Error String
+    LoadPhotos
+    -- getString : String -> Request String
+    -- type of next line is Request String
+    (Http.getString "http://elm-in-action.com/photos/list")
+
+-- Json.Decode.decodeString : Decoder val -> String -> Result String val
+-- Http.get : Decoder value -> String -> Request value
+
+initialCmdWithDecoding : Cmd Msg
+initialCmdWithDecoding =
+  list photoDecoder
+    |> Http.get "http://elm-in-action.com/photos/list.json"
+    |> Http.send LoadPhotos
+
 terno : Bool -> String -> String -> String
 terno exp trueCond falseCond = if exp then trueCond else falseCond
-
-randomPhotoIndexPicker : Random.Generator Int
-randomPhotoIndexPicker = Random.int 0 (Array.length photoArray - 1)
 
 viewSizeChooser : Model -> ThumbnailSize -> Html Msg -- Html Msg is the standard type for UX-enabled markup
 viewSizeChooser model thumbnailSize =
@@ -94,7 +125,8 @@ view model = div [class "content"] [
         id "thumbnails",
         class (sizeToString model.chosenSize)
       ] (List.map (viewThumbnail model.selectedUrl) model.photos),
-    largeImg model.selectedUrl
+    largeImg model.selectedUrl,
+    text (Maybe.withDefault "" model.loadingError)
   ]
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -102,24 +134,36 @@ update msg model =
   case msg of
     SelectByUrl url -> ({model | selectedUrl = Just url}, Cmd.none) -- a modified model is returned and goes automatically to view method
       -- ((a -> msg) -> Generator a -> Cmd msg)(Int -> Msg)(Random.Generator Int) => Cmd Msg
-    SurpriseMe -> (model, Random.generate SelectByIndex randomPhotoIndexPicker)
+    SurpriseMe ->
+      let
+        randomPhotoIndexPicker : Random.Generator Int
+        randomPhotoIndexPicker = Random.int 0 (List.length model.photos - 1)
+      in (model, Random.generate SelectByIndex randomPhotoIndexPicker)
     SelectByIndex index ->
       let
         newSelectedPhoto : Maybe Photo
         newSelectedPhoto = Array.get index (Array.fromList model.photos)
 
         newSelectedUrl : Maybe String
-        newSelectedUrl =
-          model.photos
-          |> Array.fromList
-          |> Array.get index
-          |> Maybe.map .url
-            in ({model | selectedUrl = newSelectedUrl}, Cmd.none)
-    SetSize thumbnailSize -> ({model | chosenSize = thumbnailSize}, Cmd.none)
+        newSelectedUrl = Maybe.map (\photo -> photo.url) newSelectedPhoto
 
+      in ({model | selectedUrl = newSelectedUrl}, Cmd.none)
+    SetSize thumbnailSize -> ({model | chosenSize = thumbnailSize}, Cmd.none)
+    -- concise pattern matching 1
+    LoadPhotos (Ok responseStr) ->
+      let
+        urls : List String
+        urls = String.split "," responseStr
+        photos : List Photo
+        photos = List.map Photo urls -- NB convenience fun Photo = \u -> {url = u}
+      in ({model | photos = photos, selectedUrl = List.head urls}, Cmd.none)
+    -- concise pattern matching 2
+    LoadPhotos (Err _) -> ({model | loadingError = Just "ERROR!!!"}, Cmd.none)
+
+main : Program Never Model Msg
 main = Html.program {
-    init = (initialModel, Cmd.none),
+    init = (initialModel, initialCmd),
     view = view,
     update = update,
-    subscriptions = (\model -> Sub.none)
+    subscriptions = (\_ -> Sub.none)
   }
