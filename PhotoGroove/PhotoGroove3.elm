@@ -19,30 +19,28 @@ type Msg =
 type alias Photo = {url : String}
 type alias Model = {
   photos : List Photo,
-  selectedUrl : String,
+  selectedUrl : Maybe String,
+  loadingError: Maybe String,
   chosenSize : ThumbnailSize
 }
 --type alias Msg = {operation : String, data : MsgData}
 
 initialModel : Model
 initialModel = {
-    photos = [
-      {url = "1.jpeg"},
-      {url = "2.jpeg"},
-      {url = "3.jpeg"}
-    ],
-    selectedUrl = "1.jpeg",
-    chosenSize = Large
+    photos = [],
+    selectedUrl = Nothing,
+    loadingError = Nothing,
+    chosenSize = Medium
   }
 
 photoArray : Array Photo
 photoArray = Array.fromList initialModel.photos
 
-getPhotoUrl : Int -> String
+getPhotoUrl : Int -> Maybe String
 getPhotoUrl index =
   case Array.get index photoArray of
-    Just photo -> photo.url
-    Nothing -> ""
+    Just photo -> Just photo.url
+    Nothing -> Nothing
 
 urlPrefix : String
 urlPrefix = "http://elm-in-action.com/"
@@ -73,12 +71,18 @@ sizeToString size =
     Medium -> "med"
     Large -> "large"
 
-viewThumbnail : String -> Photo -> Html Msg
+viewThumbnail : Maybe String -> Photo -> Html Msg
 viewThumbnail selected thumbnail = img [
     src (urlPrefix ++ thumbnail.url),
-    class (terno (thumbnail.url == selected) "selected" ""),
+    class (terno (Just thumbnail.url == selected) "selected" ""),
     onClick (SelectByUrl thumbnail.url)
   ] []
+
+largeImg : Maybe String -> Html Msg
+largeImg maybeUrl =
+  case maybeUrl of
+    Just url -> img [class "large", src (urlPrefix ++ "large/" ++ url)] []
+    Nothing -> text ""
 
 view : Model -> Html Msg
 view model = div [class "content"] [
@@ -90,13 +94,13 @@ view model = div [class "content"] [
         id "thumbnails",
         class (sizeToString model.chosenSize)
       ] (List.map (viewThumbnail model.selectedUrl) model.photos),
-    img [class "large", src (urlPrefix ++ "large/" ++ model.selectedUrl)] []
+    largeImg model.selectedUrl
   ]
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    SelectByUrl url -> ({model | selectedUrl = url}, Cmd.none) -- a modified model is returned and goes automatically to view method
+    SelectByUrl url -> ({model | selectedUrl = Just url}, Cmd.none) -- a modified model is returned and goes automatically to view method
       -- ((a -> msg) -> Generator a -> Cmd msg)(Int -> Msg)(Random.Generator Int) => Cmd Msg
     SurpriseMe -> (model, Random.generate SelectByIndex randomPhotoIndexPicker)
     SelectByIndex index ->
@@ -107,7 +111,7 @@ update msg model =
           |> Array.fromList
           |> Array.get index
           |> Maybe.map .url
-            in ({model | selectedUrl = Maybe.withDefault "" newSelectedUrl}, Cmd.none)
+            in ({model | selectedUrl = newSelectedUrl}, Cmd.none)
     SetSize thumbnailSize -> ({model | chosenSize = thumbnailSize}, Cmd.none)
 
 main = Html.program {
