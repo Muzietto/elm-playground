@@ -6,7 +6,8 @@ import Html.Events exposing (..)
 import Array exposing (Array)
 import Random
 import Http
-import Json.Decode exposing (Decoder, field, map3, list, bool, string, int)
+import Json.Decode exposing (..)
+import Debug exposing (log)
 
 -- type Bool = True | False
 -- type Maybe valueType = Just valueType | Nothing
@@ -17,13 +18,13 @@ type Msg =
   | SurpriseMe
   | SelectByIndex Int
   | SetSize ThumbnailSize
-  | LoadPhotos (Result Http.Error String)
+--  | LoadPhotos (Result Http.Error String)
   | LoadJsonPhotos (Result Http.Error (List Photo))
 
 type alias Photo = {
   url : String,
   size : Int,
-  title : String
+  title : Maybe String
 }
 type alias Model = {
   photos : List Photo,
@@ -41,12 +42,13 @@ initialModel = {
     chosenSize = Medium
   }
 
+-- decodeString photoDecoder "{\"url\":\"1.jpeg\",\"size\":1234,\"title\":\"photo title\"}"
 photoDecoder : Decoder Photo
 photoDecoder = map3
   Photo --(\url size title -> {url = url, size = size, title = title})
   (field "url" string)
   (field "size" int)
-  (field "title" string)
+  (maybe (field "title" string))
 
 photoArray : Array Photo
 photoArray = Array.fromList initialModel.photos
@@ -60,6 +62,7 @@ getPhotoUrl index =
 urlPrefix : String
 urlPrefix = "http://elm-in-action.com/"
 
+{-
 -- type Result errValueType okValueType = Err errValueType | Ok okValueType
 -- Http.send : (Result Http.Error okValueType -> msg) -> Request okValueType -> Cmd msg
 initialCmd : Cmd Msg
@@ -69,13 +72,24 @@ initialCmd =
     LoadPhotos
     -- LoadJsonPhotos : String -> Request String
     -- type of next line is Request String
-    (Http.getString "http://elm-in-action.com/photos/list")
+      (Http.getString "http://elm-in-action.com/photos/list")
+-}
 
 -- Json.Decode.decodeString : Decoder val -> String -> Result String val
--- Http.get : Decoder value -> String -> Request value
-
+-- Http.get : String -> Decoder value -> Request value
+-- photoDecoder : Decoder Photo
+-- Json.Decode.list photoDecoder : Decoder (List Photo)
 initialCmdWithDecoding : Cmd Msg
 initialCmdWithDecoding =
+-- Http.send : (Result Http.Error okValueType -> msg) -> Request okValueType -> Cmd msg
+  Http.send
+    LoadJsonPhotos -- Result Http.Error (List Photo) -> Msg
+    (Http.get -- String -> Decoder value -> Request value
+      "http://elm-in-action.com/photos/list.json"
+      (Json.Decode.list photoDecoder))
+
+initialCmdWithDecoding2 : Cmd Msg
+initialCmdWithDecoding2 =
   Json.Decode.list photoDecoder
     |> Http.get "http://elm-in-action.com/photos/list.json"
     |> Http.send LoadJsonPhotos
@@ -106,7 +120,7 @@ sizeToString size =
 viewThumbnail : Maybe String -> Photo -> Html Msg
 viewThumbnail selected thumbnail = img [
     src (urlPrefix ++ thumbnail.url),
-    title (thumbnail.title ++ " [" ++ toString thumbnail.size ++ " KB]"),
+    title ((Maybe.withDefault "TITTOLO" thumbnail.title) ++ " [" ++ toString thumbnail.size ++ " KB]"),
     class (terno (Just thumbnail.url == selected) "selected" ""),
     onClick (SelectByUrl thumbnail.url)
   ] []
@@ -152,9 +166,12 @@ update msg model =
       in ({model | selectedUrl = newSelectedUrl}, Cmd.none)
     SetSize thumbnailSize -> ({model | chosenSize = thumbnailSize}, Cmd.none)
     LoadJsonPhotos (Ok photos) ->
+      let _ = Debug.log "foo" photos
+      in
       ({model | photos = photos, selectedUrl = Maybe.map .url (List.head photos)}, Cmd.none)
-    LoadJsonPhotos (Err _) -> ({model | loadingError = Just "ERROR!!!"}, Cmd.none)
-    LoadPhotos _ -> (model, Cmd.none)
+    LoadJsonPhotos (Err gigio) ->
+      let _ = Debug.log "foo" gigio
+      in ({model | loadingError = Just "ERROR!!!"}, Cmd.none)
 
 main : Program Never Model Msg
 main = Html.program {
