@@ -88,8 +88,8 @@ initialCmdWithDecoding =
       "http://elm-in-action.com/photos/list.json"
       (Json.Decode.list photoDecoder))
 
-initialCmdWithDecoding2 : Cmd Msg
-initialCmdWithDecoding2 =
+initialCmdWithDecodingChained : Cmd Msg
+initialCmdWithDecodingChained =
   Json.Decode.list photoDecoder
     |> Http.get "http://elm-in-action.com/photos/list.json"
     |> Http.send LoadJsonPhotos
@@ -166,16 +166,16 @@ update msg model =
       in ({model | selectedUrl = newSelectedUrl}, Cmd.none)
     SetSize thumbnailSize -> ({model | chosenSize = thumbnailSize}, Cmd.none)
     LoadJsonPhotos (Ok photos) ->
-      let _ = Debug.log "foo" photos
+      let _ = Debug.log "Ok: " photos
       in
       ({model | photos = photos, selectedUrl = Maybe.map .url (List.head photos)}, Cmd.none)
-    LoadJsonPhotos (Err gigio) ->
-      let _ = Debug.log "foo" gigio
+    LoadJsonPhotos (Err e) ->
+      let _ = Debug.log "Err: " e
       in ({model | loadingError = Just "ERROR!!!"}, Cmd.none)
 
 main : Program Never Model Msg
 main = Html.program {
-    init = (initialModel, initialCmdWithDecoding),
+    init = (initialModel, initialCmdWithDecodingChained),
     view = view,
     update = update,
     subscriptions = (\_ -> Sub.none)

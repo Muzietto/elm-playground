@@ -9494,7 +9494,7 @@ var _user$project$PhotoGroove$initialCmdWithDecoding = A2(
 		_elm_lang$http$Http$get,
 		'http://elm-in-action.com/photos/list.json',
 		_elm_lang$core$Json_Decode$list(_user$project$PhotoGroove$photoDecoder)));
-var _user$project$PhotoGroove$initialCmdWithDecoding2 = A2(
+var _user$project$PhotoGroove$initialCmdWithDecodingChained = A2(
 	_elm_lang$http$Http$send,
 	_user$project$PhotoGroove$LoadJsonPhotos,
 	A2(
@@ -9597,7 +9597,7 @@ var _user$project$PhotoGroove$update = F2(
 			default:
 				if (_p3._0.ctor === 'Ok') {
 					var _p5 = _p3._0._0;
-					var _p4 = A2(_elm_lang$core$Debug$log, 'foo', _p5);
+					var _p4 = A2(_elm_lang$core$Debug$log, 'Ok: ', _p5);
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -9614,7 +9614,7 @@ var _user$project$PhotoGroove$update = F2(
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				} else {
-					var _p6 = A2(_elm_lang$core$Debug$log, 'foo', _p3._0._0);
+					var _p6 = A2(_elm_lang$core$Debug$log, 'Err: ', _p3._0._0);
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -9776,7 +9776,7 @@ var _user$project$PhotoGroove$view = function (model) {
 };
 var _user$project$PhotoGroove$main = _elm_lang$html$Html$program(
 	{
-		init: {ctor: '_Tuple2', _0: _user$project$PhotoGroove$initialModel, _1: _user$project$PhotoGroove$initialCmdWithDecoding},
+		init: {ctor: '_Tuple2', _0: _user$project$PhotoGroove$initialModel, _1: _user$project$PhotoGroove$initialCmdWithDecodingChained},
 		view: _user$project$PhotoGroove$view,
 		update: _user$project$PhotoGroove$update,
 		subscriptions: function (_p7) {
