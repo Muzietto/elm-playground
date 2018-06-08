@@ -1,3 +1,4 @@
+-- this one still has photo urls inside itself @init
 module PhotoGroove exposing (..)
 
 import Html exposing (div, h1, img, text, Html, button, input, label, h3)
