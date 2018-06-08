@@ -8260,56 +8260,232 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
-var _user$project$PhotoGroove$update = F2(
-	function (msg, model) {
-		return _elm_lang$core$Native_Utils.eq(msg.operation, 'SELECT_PHOTO') ? _elm_lang$core$Native_Utils.update(
-			model,
-			{selectedUrl: msg.data}) : model;
-	});
-var _user$project$PhotoGroove$selectPhotoMsg = function (url) {
-	return {operation: 'SELECT_PHOTO', data: url};
-};
-var _user$project$PhotoGroove$urlPrefix = 'http://elm-in-action.com/';
-var _user$project$PhotoGroove$initialModel = {
-	photos: {
-		ctor: '::',
-		_0: {url: '1.jpeg'},
-		_1: {
-			ctor: '::',
-			_0: {url: '2.jpeg'},
-			_1: {
-				ctor: '::',
-				_0: {url: '3.jpeg'},
-				_1: {ctor: '[]'}
-			}
-		}
-	},
-	selectedUrl: '1.jpeg'
+var _user$project$PhotoGroove$sizeToString = function (size) {
+	var _p0 = size;
+	switch (_p0.ctor) {
+		case 'Small':
+			return 'small';
+		case 'Medium':
+			return 'med';
+		default:
+			return 'large';
+	}
 };
 var _user$project$PhotoGroove$terno = F3(
 	function (exp, trueCond, falseCond) {
 		return exp ? trueCond : falseCond;
 	});
+var _user$project$PhotoGroove$urlPrefix = 'http://elm-in-action.com/';
+var _user$project$PhotoGroove$largeImg = function (maybeUrl) {
+	var _p1 = maybeUrl;
+	if (_p1.ctor === 'Just') {
+		return A2(
+			_elm_lang$html$Html$img,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('large'),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$src(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							_user$project$PhotoGroove$urlPrefix,
+							A2(_elm_lang$core$Basics_ops['++'], 'large/', _p1._0))),
+					_1: {ctor: '[]'}
+				}
+			},
+			{ctor: '[]'});
+	} else {
+		return _elm_lang$html$Html$text('');
+	}
+};
+var _user$project$PhotoGroove$Photo = function (a) {
+	return {url: a};
+};
+var _user$project$PhotoGroove$Model = F4(
+	function (a, b, c, d) {
+		return {photos: a, selectedUrl: b, loadingError: c, chosenSize: d};
+	});
+var _user$project$PhotoGroove$Large = {ctor: 'Large'};
+var _user$project$PhotoGroove$Medium = {ctor: 'Medium'};
+var _user$project$PhotoGroove$initialModel = {
+	photos: {ctor: '[]'},
+	selectedUrl: _elm_lang$core$Maybe$Nothing,
+	loadingError: _elm_lang$core$Maybe$Nothing,
+	chosenSize: _user$project$PhotoGroove$Medium
+};
+var _user$project$PhotoGroove$photoArray = _elm_lang$core$Array$fromList(_user$project$PhotoGroove$initialModel.photos);
+var _user$project$PhotoGroove$getPhotoUrl = function (index) {
+	var _p2 = A2(_elm_lang$core$Array$get, index, _user$project$PhotoGroove$photoArray);
+	if (_p2.ctor === 'Just') {
+		return _elm_lang$core$Maybe$Just(_p2._0.url);
+	} else {
+		return _elm_lang$core$Maybe$Nothing;
+	}
+};
+var _user$project$PhotoGroove$Small = {ctor: 'Small'};
+var _user$project$PhotoGroove$LoadPhotos = function (a) {
+	return {ctor: 'LoadPhotos', _0: a};
+};
+var _user$project$PhotoGroove$initialCmd = A2(
+	_elm_lang$http$Http$send,
+	_user$project$PhotoGroove$LoadPhotos,
+	_elm_lang$http$Http$getString('http://elm-in-action.com/photos/list'));
+var _user$project$PhotoGroove$initialCmdRef = A2(
+	_elm_lang$http$Http$send,
+	_user$project$PhotoGroove$LoadPhotos,
+	_elm_lang$http$Http$getString('http://elm-in-action.com/photos/list'));
+var _user$project$PhotoGroove$SetSize = function (a) {
+	return {ctor: 'SetSize', _0: a};
+};
+var _user$project$PhotoGroove$viewSizeChooser = F2(
+	function (model, thumbnailSize) {
+		return A2(
+			_elm_lang$html$Html$label,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$input,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$type_('radio'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$name('size'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$checked(
+									_elm_lang$core$Native_Utils.eq(model.chosenSize, thumbnailSize)),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Events$onClick(
+										_user$project$PhotoGroove$SetSize(thumbnailSize)),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					},
+					{ctor: '[]'}),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(
+						_user$project$PhotoGroove$sizeToString(thumbnailSize)),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _user$project$PhotoGroove$SelectByIndex = function (a) {
+	return {ctor: 'SelectByIndex', _0: a};
+};
+var _user$project$PhotoGroove$update = F2(
+	function (msg, model) {
+		var _p3 = msg;
+		switch (_p3.ctor) {
+			case 'SelectByUrl':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							selectedUrl: _elm_lang$core$Maybe$Just(_p3._0)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SurpriseMe':
+				var randomPhotoIndexPicker = A2(
+					_elm_lang$core$Random$int,
+					0,
+					_elm_lang$core$List$length(model.photos) - 1);
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: A2(_elm_lang$core$Random$generate, _user$project$PhotoGroove$SelectByIndex, randomPhotoIndexPicker)
+				};
+			case 'SelectByIndex':
+				var newSelectedPhoto = A2(
+					_elm_lang$core$Array$get,
+					_p3._0,
+					_elm_lang$core$Array$fromList(model.photos));
+				var newSelectedUrl = A2(
+					_elm_lang$core$Maybe$map,
+					function (photo) {
+						return photo.url;
+					},
+					newSelectedPhoto);
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{selectedUrl: newSelectedUrl}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SetSize':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{chosenSize: _p3._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			default:
+				if (_p3._0.ctor === 'Ok') {
+					var urls = A2(_elm_lang$core$String$split, ',', _p3._0._0);
+					var photos = A2(_elm_lang$core$List$map, _user$project$PhotoGroove$Photo, urls);
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								photos: photos,
+								selectedUrl: A2(
+									_elm_lang$core$Maybe$map,
+									function (_) {
+										return _.url;
+									},
+									_elm_lang$core$List$head(photos))
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								loadingError: _elm_lang$core$Maybe$Just('ERROR!!!')
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				}
+		}
+	});
+var _user$project$PhotoGroove$SurpriseMe = {ctor: 'SurpriseMe'};
+var _user$project$PhotoGroove$SelectByUrl = function (a) {
+	return {ctor: 'SelectByUrl', _0: a};
+};
 var _user$project$PhotoGroove$viewThumbnail = F2(
-	function (selected, pic) {
+	function (selected, thumbnail) {
 		return A2(
 			_elm_lang$html$Html$img,
 			{
 				ctor: '::',
 				_0: _elm_lang$html$Html_Attributes$src(
-					A2(_elm_lang$core$Basics_ops['++'], _user$project$PhotoGroove$urlPrefix, pic.url)),
+					A2(_elm_lang$core$Basics_ops['++'], _user$project$PhotoGroove$urlPrefix, thumbnail.url)),
 				_1: {
 					ctor: '::',
 					_0: _elm_lang$html$Html_Attributes$class(
 						A3(
 							_user$project$PhotoGroove$terno,
-							_elm_lang$core$Native_Utils.eq(pic.url, selected),
+							_elm_lang$core$Native_Utils.eq(
+								_elm_lang$core$Maybe$Just(thumbnail.url),
+								selected),
 							'selected',
 							'')),
 					_1: {
 						ctor: '::',
 						_0: _elm_lang$html$Html_Events$onClick(
-							_user$project$PhotoGroove$selectPhotoMsg(pic.url)),
+							_user$project$PhotoGroove$SelectByUrl(thumbnail.url)),
 						_1: {ctor: '[]'}
 					}
 				}
@@ -8337,41 +8513,95 @@ var _user$project$PhotoGroove$view = function (model) {
 			_1: {
 				ctor: '::',
 				_0: A2(
-					_elm_lang$html$Html$div,
+					_elm_lang$html$Html$button,
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$id('thumbnails'),
+						_0: _elm_lang$html$Html_Events$onClick(_user$project$PhotoGroove$SurpriseMe),
 						_1: {ctor: '[]'}
 					},
-					A2(
-						_elm_lang$core$List$map,
-						_user$project$PhotoGroove$viewThumbnail(model.selectedUrl),
-						model.photos)),
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('Surprise me!'),
+						_1: {ctor: '[]'}
+					}),
 				_1: {
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$img,
+						_elm_lang$html$Html$h3,
+						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('large'),
+							_0: _elm_lang$html$Html$text('Thumbnail Size'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$id('choose-size'),
+								_1: {ctor: '[]'}
+							},
+							A2(
+								_elm_lang$core$List$map,
+								_user$project$PhotoGroove$viewSizeChooser(model),
+								{
+									ctor: '::',
+									_0: _user$project$PhotoGroove$Small,
+									_1: {
+										ctor: '::',
+										_0: _user$project$PhotoGroove$Medium,
+										_1: {
+											ctor: '::',
+											_0: _user$project$PhotoGroove$Large,
+											_1: {ctor: '[]'}
+										}
+									}
+								})),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$div,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$id('thumbnails'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class(
+											_user$project$PhotoGroove$sizeToString(model.chosenSize)),
+										_1: {ctor: '[]'}
+									}
+								},
+								A2(
+									_elm_lang$core$List$map,
+									_user$project$PhotoGroove$viewThumbnail(model.selectedUrl),
+									model.photos)),
 							_1: {
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$src(
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										_user$project$PhotoGroove$urlPrefix,
-										A2(_elm_lang$core$Basics_ops['++'], 'large/', model.selectedUrl))),
-								_1: {ctor: '[]'}
+								_0: _user$project$PhotoGroove$largeImg(model.selectedUrl),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(
+										A2(_elm_lang$core$Maybe$withDefault, '', model.loadingError)),
+									_1: {ctor: '[]'}
+								}
 							}
-						},
-						{ctor: '[]'}),
-					_1: {ctor: '[]'}
+						}
+					}
 				}
 			}
 		});
 };
-var _user$project$PhotoGroove$main = _elm_lang$html$Html$beginnerProgram(
-	{model: _user$project$PhotoGroove$initialModel, view: _user$project$PhotoGroove$view, update: _user$project$PhotoGroove$update})();
+var _user$project$PhotoGroove$main = _elm_lang$html$Html$program(
+	{
+		init: {ctor: '_Tuple2', _0: _user$project$PhotoGroove$initialModel, _1: _user$project$PhotoGroove$initialCmd},
+		view: _user$project$PhotoGroove$view,
+		update: _user$project$PhotoGroove$update,
+		subscriptions: function (_p4) {
+			return _elm_lang$core$Platform_Sub$none;
+		}
+	})();
 
 var Elm = {};
 Elm['PhotoGroove'] = Elm['PhotoGroove'] || {};
