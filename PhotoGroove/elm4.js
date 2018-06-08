@@ -9483,6 +9483,10 @@ var _user$project$PhotoGroove$initialCmd = A2(
 	_elm_lang$http$Http$send,
 	_user$project$PhotoGroove$LoadPhotos,
 	_elm_lang$http$Http$getString('http://elm-in-action.com/photos/list'));
+var _user$project$PhotoGroove$initialCmdRef = A2(
+	_elm_lang$http$Http$send,
+	_user$project$PhotoGroove$LoadPhotos,
+	_elm_lang$http$Http$getString('http://elm-in-action.com/photos/list'));
 var _user$project$PhotoGroove$SetSize = function (a) {
 	return {ctor: 'SetSize', _0: a};
 };
@@ -9586,7 +9590,12 @@ var _user$project$PhotoGroove$update = F2(
 							model,
 							{
 								photos: photos,
-								selectedUrl: _elm_lang$core$List$head(urls)
+								selectedUrl: A2(
+									_elm_lang$core$Maybe$map,
+									function (_) {
+										return _.url;
+									},
+									_elm_lang$core$List$head(photos))
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};

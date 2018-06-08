@@ -1,3 +1,4 @@
+-- this one load photo urls as CSV string from server
 module PhotoGroove exposing (..)
 
 import Html exposing (div, h1, img, text, Html, button, input, label, h3)
@@ -6,7 +7,6 @@ import Html.Events exposing (..)
 import Array exposing (Array)
 import Random
 import Http
-import Json.Decode exposing (list, bool, string, int)
 
 -- type Bool = True | False
 -- type Maybe valueType = Just valueType | Nothing
@@ -17,12 +17,10 @@ type Msg =
   | SurpriseMe
   | SelectByIndex Int
   | SetSize ThumbnailSize
-  | LoadPhotos (Result Http.Error (List Photo))
+  | LoadPhotos (Result Http.Error String)
 
 type alias Photo = {
-  url : String,
-  size : Int,
-  title : String
+  url : String
 }
 type alias Model = {
   photos : List Photo,
@@ -40,13 +38,6 @@ initialModel = {
     chosenSize = Medium
   }
 
-photoDecoder : Decoder Photo
-photoDecoder = map3
-  Photo --(\url size title -> {url = url, size = size, title = title})
-  (field "url" string)
-  (field "size" int)
-  (field "title" string)
-
 photoArray : Array Photo
 photoArray = Array.fromList initialModel.photos
 
@@ -60,24 +51,22 @@ urlPrefix : String
 urlPrefix = "http://elm-in-action.com/"
 
 -- type Result errValueType okValueType = Err errValueType | Ok okValueType
+-- Http.send returns a Cmd representing the effectful HTTP request we want to make
 -- Http.send : (Result Http.Error okValueType -> msg) -> Request okValueType -> Cmd msg
 initialCmd : Cmd Msg
-initialCmd =
+initialCmd = "http://elm-in-action.com/photos/list"
+  -- Http.getString : String -> Request String
+  |> Http.getString
+  -- LoadPhotos : Result Http.Error String -> Msg
+  |> Http.send LoadPhotos -- Cmd Msg
+
+initialCmdRef : Cmd Msg
+initialCmdRef =
   Http.send
     -- LoadPhotos : Result Http.Error String
     LoadPhotos
-    -- getString : String -> Request String
     -- type of next line is Request String
     (Http.getString "http://elm-in-action.com/photos/list")
-
--- Json.Decode.decodeString : Decoder val -> String -> Result String val
--- Http.get : Decoder value -> String -> Request value
-
-initialCmdWithDecoding : Cmd Msg
-initialCmdWithDecoding =
-  list photoDecoder
-    |> Http.get "http://elm-in-action.com/photos/list.json"
-    |> Http.send LoadPhotos
 
 terno : Bool -> String -> String -> String
 terno exp trueCond falseCond = if exp then trueCond else falseCond
@@ -149,15 +138,11 @@ update msg model =
 
       in ({model | selectedUrl = newSelectedUrl}, Cmd.none)
     SetSize thumbnailSize -> ({model | chosenSize = thumbnailSize}, Cmd.none)
-    -- concise pattern matching 1
-    LoadPhotos (Ok responseStr) ->
+    LoadPhotos (Ok urlsString) ->
       let
-        urls : List String
-        urls = String.split "," responseStr
-        photos : List Photo
-        photos = List.map Photo urls -- NB convenience fun Photo = \u -> {url = u}
-      in ({model | photos = photos, selectedUrl = List.head urls}, Cmd.none)
-    -- concise pattern matching 2
+        urls = String.split "," urlsString
+        photos = List.map Photo urls
+      in ({model | photos = photos, selectedUrl = Maybe.map .url (List.head photos)}, Cmd.none)
     LoadPhotos (Err _) -> ({model | loadingError = Just "ERROR!!!"}, Cmd.none)
 
 main : Program Never Model Msg
