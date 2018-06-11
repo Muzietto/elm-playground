@@ -9548,6 +9548,44 @@ var _user$project$PhotoGroove$setFilters = _elm_lang$core$Native_Platform.outgoi
 				})
 		};
 	});
+var _user$project$PhotoGroove$applyFiltersToModel = function (model) {
+	var _p5 = model.selectedUrl;
+	if (_p5.ctor === 'Just') {
+		var _p7 = _p5._0;
+		var url = A2(
+			_elm_lang$core$Basics_ops['++'],
+			_user$project$PhotoGroove$urlPrefix,
+			A2(_elm_lang$core$Basics_ops['++'], 'large/', _p7));
+		var filters = {
+			ctor: '::',
+			_0: {
+				name: 'Hue',
+				amount: _elm_lang$core$Basics$toFloat(model.hue) / 11
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					name: 'Ripple',
+					amount: _elm_lang$core$Basics$toFloat(model.ripple) / 11
+				},
+				_1: {
+					ctor: '::',
+					_0: {
+						name: 'Noise',
+						amount: _elm_lang$core$Basics$toFloat(model.noise) / 11
+					},
+					_1: {ctor: '[]'}
+				}
+			}
+		};
+		var cmd = _user$project$PhotoGroove$setFilters(
+			{url: url, filters: filters});
+		var _p6 = A2(_elm_lang$core$Debug$log, 'seleUrl', _p7);
+		return {ctor: '_Tuple2', _0: model, _1: cmd};
+	} else {
+		return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+	}
+};
 var _user$project$PhotoGroove$Photo = F3(
 	function (a, b, c) {
 		return {url: a, size: b, title: c};
@@ -9580,9 +9618,9 @@ var _user$project$PhotoGroove$initialModel = {
 };
 var _user$project$PhotoGroove$photoArray = _elm_lang$core$Array$fromList(_user$project$PhotoGroove$initialModel.photos);
 var _user$project$PhotoGroove$getPhotoUrl = function (index) {
-	var _p5 = A2(_elm_lang$core$Array$get, index, _user$project$PhotoGroove$photoArray);
-	if (_p5.ctor === 'Just') {
-		return _elm_lang$core$Maybe$Just(_p5._0.url);
+	var _p8 = A2(_elm_lang$core$Array$get, index, _user$project$PhotoGroove$photoArray);
+	if (_p8.ctor === 'Just') {
+		return _elm_lang$core$Maybe$Just(_p8._0.url);
 	} else {
 		return _elm_lang$core$Maybe$Nothing;
 	}
@@ -9659,38 +9697,15 @@ var _user$project$PhotoGroove$SelectByIndex = function (a) {
 };
 var _user$project$PhotoGroove$update = F2(
 	function (msg, model) {
-		var _p6 = msg;
-		switch (_p6.ctor) {
+		var _p9 = msg;
+		switch (_p9.ctor) {
 			case 'SelectByUrl':
-				var _p7 = _p6._0;
-				var completeUrl = A2(
-					_elm_lang$core$Basics_ops['++'],
-					_user$project$PhotoGroove$urlPrefix,
-					A2(_elm_lang$core$Basics_ops['++'], 'large/', _p7));
-				var filters = {
-					ctor: '::',
-					_0: {name: 'Hue', amount: model.hue},
-					_1: {
-						ctor: '::',
-						_0: {name: 'Ripple', amount: model.ripple},
-						_1: {
-							ctor: '::',
-							_0: {name: 'Noise', amount: model.noise},
-							_1: {ctor: '[]'}
-						}
-					}
-				};
-				var cmd = _user$project$PhotoGroove$setFilters(
-					{url: completeUrl, filters: filters});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
+				return _user$project$PhotoGroove$applyFiltersToModel(
+					_elm_lang$core$Native_Utils.update(
 						model,
 						{
-							selectedUrl: _elm_lang$core$Maybe$Just(_p7)
-						}),
-					_1: cmd
-				};
+							selectedUrl: _elm_lang$core$Maybe$Just(_p9._0)
+						}));
 			case 'SurpriseMe':
 				var randomPhotoIndexPicker = A2(
 					_elm_lang$core$Random$int,
@@ -9704,7 +9719,7 @@ var _user$project$PhotoGroove$update = F2(
 			case 'SelectByIndex':
 				var newSelectedPhoto = A2(
 					_elm_lang$core$Array$get,
-					_p6._0,
+					_p9._0,
 					_elm_lang$core$Array$fromList(model.photos));
 				var newSelectedUrl = A2(
 					_elm_lang$core$Maybe$map,
@@ -9724,30 +9739,30 @@ var _user$project$PhotoGroove$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{chosenSize: _p6._0}),
+						{chosenSize: _p9._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'LoadJsonPhotos':
-				if (_p6._0.ctor === 'Ok') {
-					var _p9 = _p6._0._0;
-					var _p8 = A2(_elm_lang$core$Debug$log, 'Ok: ', _p9);
+				if (_p9._0.ctor === 'Ok') {
+					var _p11 = _p9._0._0;
+					var _p10 = A2(_elm_lang$core$Debug$log, 'Ok: ', _p11);
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								photos: _p9,
+								photos: _p11,
 								selectedUrl: A2(
 									_elm_lang$core$Maybe$map,
 									function (_) {
 										return _.url;
 									},
-									_elm_lang$core$List$head(_p9))
+									_elm_lang$core$List$head(_p11))
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				} else {
-					var _p10 = A2(_elm_lang$core$Debug$log, 'Err: ', _p6._0._0);
+					var _p12 = A2(_elm_lang$core$Debug$log, 'Err: ', _p9._0._0);
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -9759,29 +9774,20 @@ var _user$project$PhotoGroove$update = F2(
 					};
 				}
 			case 'SetHue':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
+				return _user$project$PhotoGroove$applyFiltersToModel(
+					_elm_lang$core$Native_Utils.update(
 						model,
-						{hue: _p6._0}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
+						{hue: _p9._0}));
 			case 'SetRipple':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
+				return _user$project$PhotoGroove$applyFiltersToModel(
+					_elm_lang$core$Native_Utils.update(
 						model,
-						{ripple: _p6._0}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
+						{ripple: _p9._0}));
 			default:
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
+				return _user$project$PhotoGroove$applyFiltersToModel(
+					_elm_lang$core$Native_Utils.update(
 						model,
-						{noise: _p6._0}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
+						{noise: _p9._0}));
 		}
 	});
 var _user$project$PhotoGroove$SurpriseMe = {ctor: 'SurpriseMe'};
@@ -9959,7 +9965,7 @@ var _user$project$PhotoGroove$main = _elm_lang$html$Html$program(
 		init: {ctor: '_Tuple2', _0: _user$project$PhotoGroove$initialModel, _1: _user$project$PhotoGroove$initialCmdWithDecodingChained},
 		view: _user$project$PhotoGroove$view,
 		update: _user$project$PhotoGroove$update,
-		subscriptions: function (_p11) {
+		subscriptions: function (_p13) {
 			return _elm_lang$core$Platform_Sub$none;
 		}
 	})();

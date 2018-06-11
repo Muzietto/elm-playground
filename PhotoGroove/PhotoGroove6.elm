@@ -34,7 +34,7 @@ type alias Photo = {
 port setFilters : FilterOptions -> Cmd msg
 type alias FilterOptions = {
   url : String,
-  filters : List {name : String, amount : Int}
+  filters : List {name : String, amount : Float}
 }
 type alias Model = {
   photos : List Photo,
@@ -216,21 +216,29 @@ view model = div [class "content"] [
     text (Maybe.withDefault "" model.loadingError)
   ]
 
+applyFiltersToModel : Model -> (Model, Cmd Msg)
+applyFiltersToModel model =
+  case model.selectedUrl of
+    Just seleUrl ->
+      let
+        _ = Debug.log "seleUrl" seleUrl
+        filters = [
+          {name = "Hue", amount = toFloat model.hue / 11},
+          {name = "Ripple", amount = toFloat model.ripple / 11},
+          {name = "Noise", amount = toFloat model.noise / 11}
+        ]
+        url =
+          urlPrefix ++ "large/" ++ seleUrl
+        cmd = setFilters {url = url, filters = filters}
+      in (model, cmd)
+    Nothing -> (model, Cmd.none)
+
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     -- Cmd.none : Cmd msg <-- lowercase m
-    SelectByUrl url ->
-      let
-        filters = [
-          {name = "Hue", amount = model.hue},
-          {name = "Ripple", amount = model.ripple},
-          {name = "Noise", amount = model.noise}
-        ]
-        completeUrl = urlPrefix ++ "large/" ++ url
-        cmd = setFilters {url = completeUrl, filters = filters}
-      in ({model | selectedUrl = Just url}, cmd) -- a modified model is returned and goes automatically to view method
-      -- ((a -> msg) -> Generator a -> Cmd msg)(Int -> Msg)(Random.Generator Int) => Cmd Msg
+    SelectByUrl newUrl -> applyFiltersToModel {model | selectedUrl = Just newUrl}
+    -- ((a -> msg) -> Generator a -> Cmd msg)(Int -> Msg)(Random.Generator Int) => Cmd Msg
     SurpriseMe ->
       let
         randomPhotoIndexPicker : Random.Generator Int
@@ -250,7 +258,6 @@ update msg model =
         newSelectedUrl =
           newSelectedPhoto
           |> Maybe.map .url
-
       in ({model | selectedUrl = newSelectedUrl}, Cmd.none)
     SetSize thumbnailSize -> ({model | chosenSize = thumbnailSize}, Cmd.none)
     LoadJsonPhotos (Ok photos) ->
@@ -259,9 +266,9 @@ update msg model =
     LoadJsonPhotos (Err e) ->
       let _ = Debug.log "Err: " e
       in ({model | loadingError = Just "ERROR!!!"}, Cmd.none)
-    SetHue newHue -> ({model | hue = newHue}, Cmd.none)
-    SetRipple newRipple -> ({model | ripple = newRipple}, Cmd.none)
-    SetNoise newNoise -> ({model | noise = newNoise}, Cmd.none)
+    SetHue newHue -> applyFiltersToModel {model | hue = newHue}
+    SetRipple newRipple -> applyFiltersToModel {model | ripple = newRipple}
+    SetNoise newNoise -> applyFiltersToModel {model | noise = newNoise}
 
 main : Program Never Model Msg
 main = Html.program {
