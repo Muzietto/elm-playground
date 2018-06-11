@@ -1,3 +1,4 @@
+-- this one load photo data as JSON strings from server
 module PhotoGroove exposing (..)
 
 import Html exposing (div, h1, img, text, Html, button, input, label, h3)
@@ -158,17 +159,23 @@ update msg model =
     SelectByIndex index ->
       let
         newSelectedPhoto : Maybe Photo
-        newSelectedPhoto = Array.get index (Array.fromList model.photos)
+--        newSelectedPhoto = Array.get index (Array.fromList model.photos)
+        newSelectedPhoto =
+          model.photos
+            |> Array.fromList
+            |> Array.get index
 
         newSelectedUrl : Maybe String
-        newSelectedUrl = Maybe.map (\photo -> photo.url) newSelectedPhoto
+--        newSelectedUrl = Maybe.map (\photo -> photo.url) newSelectedPhoto
+        newSelectedUrl =
+          newSelectedPhoto
+          |> Maybe.map .url
 
       in ({model | selectedUrl = newSelectedUrl}, Cmd.none)
     SetSize thumbnailSize -> ({model | chosenSize = thumbnailSize}, Cmd.none)
     LoadJsonPhotos (Ok photos) ->
       let _ = Debug.log "Ok: " photos
-      in
-      ({model | photos = photos, selectedUrl = Maybe.map .url (List.head photos)}, Cmd.none)
+      in ({model | photos = photos, selectedUrl = Maybe.map .url (List.head photos)}, Cmd.none)
     LoadJsonPhotos (Err e) ->
       let _ = Debug.log "Err: " e
       in ({model | loadingError = Just "ERROR!!!"}, Cmd.none)

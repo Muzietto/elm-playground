@@ -9575,8 +9575,8 @@ var _user$project$PhotoGroove$update = F2(
 					_elm_lang$core$Array$fromList(model.photos));
 				var newSelectedUrl = A2(
 					_elm_lang$core$Maybe$map,
-					function (photo) {
-						return photo.url;
+					function (_) {
+						return _.url;
 					},
 					newSelectedPhoto);
 				return {
