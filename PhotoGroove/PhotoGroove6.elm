@@ -1,5 +1,5 @@
 -- here we start ch5 - JavaScript image filters
-module PhotoGroove exposing (..)
+port module PhotoGroove exposing (..)
 
 import Html exposing (node, Attribute, div, h1, img, text, Html, button, input, label, h3)
 import Html.Attributes as Attr exposing (id, class, src, name, max, checked, type_, title)
@@ -29,6 +29,12 @@ type alias Photo = {
   url : String,
   size : Int,
   title : Maybe String
+}
+-- no implementation needed. ELM runtime creates it!
+port setFilters : FilterOptions -> Cmd msg
+type alias FilterOptions = {
+  url : String,
+  filters : List {name : String, amount : Int}
 }
 type alias Model = {
   photos : List Photo,
@@ -212,7 +218,17 @@ view model = div [class "content"] [
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    SelectByUrl url -> ({model | selectedUrl = Just url}, Cmd.none) -- a modified model is returned and goes automatically to view method
+    -- Cmd.none : Cmd msg <-- lowercase m
+    SelectByUrl url ->
+      let
+        filters = [
+          {name = "Hue", amount = model.hue},
+          {name = "Ripple", amount = model.ripple},
+          {name = "Noise", amount = model.noise}
+        ]
+        completeUrl = urlPrefix ++ "large/" ++ url
+        cmd = setFilters {url = completeUrl, filters = filters}
+      in ({model | selectedUrl = Just url}, cmd) -- a modified model is returned and goes automatically to view method
       -- ((a -> msg) -> Generator a -> Cmd msg)(Int -> Msg)(Random.Generator Int) => Cmd Msg
     SurpriseMe ->
       let

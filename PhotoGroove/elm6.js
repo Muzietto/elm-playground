@@ -9541,6 +9541,17 @@ var _user$project$PhotoGroove$largeImg = function (maybeUrl) {
 		return _elm_lang$html$Html$text('');
 	}
 };
+var _user$project$PhotoGroove$setFilters = _elm_lang$core$Native_Platform.outgoingPort(
+	'setFilters',
+	function (v) {
+		return {
+			url: v.url,
+			filters: _elm_lang$core$Native_List.toArray(v.filters).map(
+				function (v) {
+					return {name: v.name, amount: v.amount};
+				})
+		};
+	});
 var _user$project$PhotoGroove$Photo = F3(
 	function (a, b, c) {
 		return {url: a, size: b, title: c};
@@ -9552,6 +9563,10 @@ var _user$project$PhotoGroove$photoDecoder = A4(
 	A2(_elm_lang$core$Json_Decode$field, 'size', _elm_lang$core$Json_Decode$int),
 	_elm_lang$core$Json_Decode$maybe(
 		A2(_elm_lang$core$Json_Decode$field, 'title', _elm_lang$core$Json_Decode$string)));
+var _user$project$PhotoGroove$FilterOptions = F2(
+	function (a, b) {
+		return {url: a, filters: b};
+	});
 var _user$project$PhotoGroove$Model = F7(
 	function (a, b, c, d, e, f, g) {
 		return {photos: a, selectedUrl: b, loadingError: c, chosenSize: d, hue: e, ripple: f, noise: g};
@@ -9651,14 +9666,34 @@ var _user$project$PhotoGroove$update = F2(
 		var _p6 = msg;
 		switch (_p6.ctor) {
 			case 'SelectByUrl':
+				var _p7 = _p6._0;
+				var completeUrl = A2(
+					_elm_lang$core$Basics_ops['++'],
+					_user$project$PhotoGroove$urlPrefix,
+					A2(_elm_lang$core$Basics_ops['++'], 'large/', _p7));
+				var filters = {
+					ctor: '::',
+					_0: {name: 'Hue', amount: model.hue},
+					_1: {
+						ctor: '::',
+						_0: {name: 'Ripple', amount: model.ripple},
+						_1: {
+							ctor: '::',
+							_0: {name: 'Noise', amount: model.noise},
+							_1: {ctor: '[]'}
+						}
+					}
+				};
+				var cmd = _user$project$PhotoGroove$setFilters(
+					{url: completeUrl, filters: filters});
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							selectedUrl: _elm_lang$core$Maybe$Just(_p6._0)
+							selectedUrl: _elm_lang$core$Maybe$Just(_p7)
 						}),
-					_1: _elm_lang$core$Platform_Cmd$none
+					_1: cmd
 				};
 			case 'SurpriseMe':
 				var randomPhotoIndexPicker = A2(
@@ -9698,25 +9733,25 @@ var _user$project$PhotoGroove$update = F2(
 				};
 			case 'LoadJsonPhotos':
 				if (_p6._0.ctor === 'Ok') {
-					var _p8 = _p6._0._0;
-					var _p7 = A2(_elm_lang$core$Debug$log, 'Ok: ', _p8);
+					var _p9 = _p6._0._0;
+					var _p8 = A2(_elm_lang$core$Debug$log, 'Ok: ', _p9);
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								photos: _p8,
+								photos: _p9,
 								selectedUrl: A2(
 									_elm_lang$core$Maybe$map,
 									function (_) {
 										return _.url;
 									},
-									_elm_lang$core$List$head(_p8))
+									_elm_lang$core$List$head(_p9))
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				} else {
-					var _p9 = A2(_elm_lang$core$Debug$log, 'Err: ', _p6._0._0);
+					var _p10 = A2(_elm_lang$core$Debug$log, 'Err: ', _p6._0._0);
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -9928,7 +9963,7 @@ var _user$project$PhotoGroove$main = _elm_lang$html$Html$program(
 		init: {ctor: '_Tuple2', _0: _user$project$PhotoGroove$initialModel, _1: _user$project$PhotoGroove$initialCmdWithDecodingChained},
 		view: _user$project$PhotoGroove$view,
 		update: _user$project$PhotoGroove$update,
-		subscriptions: function (_p10) {
+		subscriptions: function (_p11) {
 			return _elm_lang$core$Platform_Sub$none;
 		}
 	})();
