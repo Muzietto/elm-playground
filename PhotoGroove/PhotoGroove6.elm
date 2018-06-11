@@ -263,7 +263,8 @@ update msg model =
     SetSize thumbnailSize -> ({model | chosenSize = thumbnailSize}, Cmd.none)
     LoadJsonPhotos (Ok photos) ->
       let _ = Debug.log "Ok" photos
-      in ({model | photos = photos, selectedUrl = Maybe.map .url (List.head photos)}, Cmd.none)
+      in applyFiltersToModel
+        {model | photos = photos, selectedUrl = Maybe.map .url (List.head photos)}
     LoadJsonPhotos (Err e) ->
       let _ = Debug.log "Err" e
       in ({model | loadingError = Just "ERROR!!!"}, Cmd.none)
