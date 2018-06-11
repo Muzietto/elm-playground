@@ -3,11 +3,11 @@ module PhotoGroove exposing (..)
 
 import Html exposing (node, Attribute, div, h1, img, text, Html, button, input, label, h3)
 import Html.Attributes as Attr exposing (id, class, src, name, max, checked, type_, title)
-import Html.Events exposing (onClick, on)
+import Html.Events exposing (onClick, on, targetValue)
 import Array exposing (Array)
 import Random
 import Http
-import Json.Decode exposing (string, int, list, field, Decoder, at, maybe, map3)
+import Json.Decode as JD exposing (string, int, list, field, Decoder, at, maybe, map3, map)
 import Debug exposing (log)
 
 -- type Bool = True | False
@@ -21,6 +21,9 @@ type Msg =
   | SetSize ThumbnailSize
 --  | LoadPhotos (Result Http.Error String)
   | LoadJsonPhotos (Result Http.Error (List Photo))
+  | SetHue Int
+  | SetRipple Int
+  | SetNoise Int
 
 type alias Photo = {
   url : String,
@@ -31,7 +34,10 @@ type alias Model = {
   photos : List Photo,
   selectedUrl : Maybe String,
   loadingError: Maybe String,
-  chosenSize : ThumbnailSize
+  chosenSize : ThumbnailSize,
+  hue: Int,
+  ripple: Int,
+  noise: Int
 }
 --type alias Msg = {operation : String, data : MsgData}
 
@@ -40,7 +46,10 @@ initialModel = {
     photos = [],
     selectedUrl = Nothing,
     loadingError = Nothing,
-    chosenSize = Medium
+    chosenSize = Medium,
+    hue = 0,
+    ripple = 0,
+    noise = 0
   }
 
 -- decodeString photoDecoder "{\"url\":\"1.jpeg\",\"size\":1234,\"title\":\"photo title\"}"
@@ -87,11 +96,11 @@ initialCmdWithDecoding =
     LoadJsonPhotos -- Result Http.Error (List Photo) -> Msg
     (Http.get -- String -> Decoder value -> Request value
       "http://elm-in-action.com/photos/list.json"
-      (Json.Decode.list photoDecoder))
+      (JD.list photoDecoder))
 
 initialCmdWithDecodingChained : Cmd Msg
 initialCmdWithDecodingChained =
-  Json.Decode.list photoDecoder
+  JD.list photoDecoder
     |> Http.get "http://elm-in-action.com/photos/list.json"
     |> Http.send LoadJsonPhotos
 
@@ -102,17 +111,35 @@ terno exp trueCond falseCond = if exp then trueCond else falseCond
 paperSlider : List(Attribute Msg) -> List(Html Msg) -> Html Msg
 paperSlider = node "paper-slider"
 
+loggingDecoder : String -> JD.Decoder msg -> JD.Decoder msg
+loggingDecoder category decoder =
+--    let _ = Debug.log "message: " message
+    JD.value |> JD.andThen (\ev ->
+        case JD.decodeValue decoder ev of
+            Ok decoded -> -- e.g. decoded == SetHue 1
+                let _ = Debug.log category decoded
+              --  let _ = Debug.log category (JD.decodeValue targetValue ev)
+                in JD.succeed decoded
+            Err err ->
+                JD.fail <| Debug.log category <| err)
+
 onImmediateValueChange : (Int -> Msg) -> Attribute Msg
-onImmediateValueChange toMsg = -- toMsg : Int -> Msg
+onImmediateValueChange intToMsg = -- intToMsg : Int -> Msg
   let
     targetImmediateValue : Decoder Int
     targetImmediateValue = field "target" (field "immediateValue" int)
 
     msgDecoder : Decoder Msg
-    msgDecoder = Json.Decode.map toMsg targetImmediateValue
+    msgDecoder = JD.map intToMsg targetImmediateValue
   in
 -- Html.Attributes.on : String -> Json.Decode.Decoder Msg -> Attribute Msg
-    on "immediate-value-changed" msgDecoder
+    on "immediate-value-changed" (loggingDecoder "EVENT_DECODER" msgDecoder)
+
+onImmediateValueChangePipelined : (Int -> Msg) -> Attribute Msg
+onImmediateValueChangePipelined intToMsg =
+  field "target" (field "immediateValue" int)
+  |> JD.map intToMsg
+  |> on "immediate-value-changed"
 
 viewSizeChooser : Model -> ThumbnailSize -> Html Msg -- Html Msg is the standard type for UX-enabled markup
 viewSizeChooser model thumbnailSize =
@@ -122,6 +149,7 @@ viewSizeChooser model thumbnailSize =
         type_ "radio",
         name "size",
         checked (model.chosenSize == thumbnailSize),
+     -- onClick : msg -> Html.Attribute msg
         onClick (SetSize thumbnailSize) -- the click will return the message object (SetSize ThumbnailSize belongs to Msg)
       ] [],
       text (sizeToString thumbnailSize)
@@ -139,14 +167,20 @@ viewThumbnail selected thumbnail = img [
     src (urlPrefix ++ thumbnail.url),
     title ((Maybe.withDefault "TITTOLO" thumbnail.title) ++ " [" ++ toString thumbnail.size ++ " KB]"),
     class (terno (Just thumbnail.url == selected) "selected" ""),
+ -- onClick : msg -> Html.Attribute msg
     onClick (SelectByUrl thumbnail.url)
   ] []
 
-viewFilter : String -> Int -> Html Msg
-viewFilter name magnitude =
+viewFilter : String -> (Int -> Msg) -> Int -> Html Msg
+viewFilter name intToMsg magnitude =
   div [class "filter-slider"] [ -- children
     label []  [text name],
-    paperSlider [Attr.max "11"] [],
+    paperSlider [
+     -- Html.Attributes.max : String -> Html.Attribute Msg
+        Attr.max "11",
+     -- onImmediateValueChange : (Int -> Msg) -> Html.Attribute Msg
+        onImmediateValueChange intToMsg
+      ] [],
     label [] [text (toString magnitude)]
   ]
 
@@ -161,9 +195,9 @@ view model = div [class "content"] [
     h1 [] [text "PhotoGroove"],
     button [onClick SurpriseMe] [text "Surprise me!"],
     div [class "filters"] [
-      viewFilter "Hue" 0,
-      viewFilter "Ripple" 0,
-      viewFilter "Noise" 0
+      viewFilter "Hue" SetHue model.hue,
+      viewFilter "Ripple" SetRipple model.ripple,
+      viewFilter "Noise" SetNoise model.noise
     ],
     h3 [] [text "Thumbnail Size"],
     div [id "choose-size"] (List.map (viewSizeChooser model) [Small, Medium, Large]),
@@ -208,6 +242,9 @@ update msg model =
     LoadJsonPhotos (Err e) ->
       let _ = Debug.log "Err: " e
       in ({model | loadingError = Just "ERROR!!!"}, Cmd.none)
+    SetHue newHue -> ({model | hue = newHue}, Cmd.none)
+    SetRipple newRipple -> ({model | ripple = newRipple}, Cmd.none)
+    SetNoise newNoise -> ({model | noise = newNoise}, Cmd.none)
 
 main : Program Never Model Msg
 main = Html.program {
