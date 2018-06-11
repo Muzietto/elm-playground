@@ -9717,9 +9717,10 @@ var _user$project$PhotoGroove$update = F2(
 					_1: A2(_elm_lang$core$Random$generate, _user$project$PhotoGroove$SelectByIndex, randomPhotoIndexPicker)
 				};
 			case 'SelectByIndex':
+				var _p11 = _p9._0;
 				var newSelectedPhoto = A2(
 					_elm_lang$core$Array$get,
-					_p9._0,
+					_p11,
 					_elm_lang$core$Array$fromList(model.photos));
 				var newSelectedUrl = A2(
 					_elm_lang$core$Maybe$map,
@@ -9727,13 +9728,11 @@ var _user$project$PhotoGroove$update = F2(
 						return _.url;
 					},
 					newSelectedPhoto);
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
+				var _p10 = A2(_elm_lang$core$Debug$log, 'index', _p11);
+				return _user$project$PhotoGroove$applyFiltersToModel(
+					_elm_lang$core$Native_Utils.update(
 						model,
-						{selectedUrl: newSelectedUrl}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
+						{selectedUrl: newSelectedUrl}));
 			case 'SetSize':
 				return {
 					ctor: '_Tuple2',
@@ -9744,25 +9743,25 @@ var _user$project$PhotoGroove$update = F2(
 				};
 			case 'LoadJsonPhotos':
 				if (_p9._0.ctor === 'Ok') {
-					var _p11 = _p9._0._0;
-					var _p10 = A2(_elm_lang$core$Debug$log, 'Ok: ', _p11);
+					var _p13 = _p9._0._0;
+					var _p12 = A2(_elm_lang$core$Debug$log, 'Ok', _p13);
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								photos: _p11,
+								photos: _p13,
 								selectedUrl: A2(
 									_elm_lang$core$Maybe$map,
 									function (_) {
 										return _.url;
 									},
-									_elm_lang$core$List$head(_p11))
+									_elm_lang$core$List$head(_p13))
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				} else {
-					var _p12 = A2(_elm_lang$core$Debug$log, 'Err: ', _p9._0._0);
+					var _p14 = A2(_elm_lang$core$Debug$log, 'Err', _p9._0._0);
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -9965,7 +9964,7 @@ var _user$project$PhotoGroove$main = _elm_lang$html$Html$program(
 		init: {ctor: '_Tuple2', _0: _user$project$PhotoGroove$initialModel, _1: _user$project$PhotoGroove$initialCmdWithDecodingChained},
 		view: _user$project$PhotoGroove$view,
 		update: _user$project$PhotoGroove$update,
-		subscriptions: function (_p13) {
+		subscriptions: function (_p15) {
 			return _elm_lang$core$Platform_Sub$none;
 		}
 	})();

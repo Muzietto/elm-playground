@@ -244,27 +244,28 @@ update msg model =
         randomPhotoIndexPicker : Random.Generator Int
         randomPhotoIndexPicker = Random.int 0 (List.length model.photos - 1)
       in (model, Random.generate SelectByIndex randomPhotoIndexPicker)
-    SelectByIndex index ->
+    SelectByIndex index -> -- handles continuation of SurpriseMe
       let
+        _ = Debug.log "index" index
         newSelectedPhoto : Maybe Photo
---        newSelectedPhoto = Array.get index (Array.fromList model.photos)
+--      newSelectedPhoto = Array.get index (Array.fromList model.photos)
         newSelectedPhoto =
           model.photos
             |> Array.fromList
             |> Array.get index
 
         newSelectedUrl : Maybe String
---        newSelectedUrl = Maybe.map (\photo -> photo.url) newSelectedPhoto
+--      newSelectedUrl = Maybe.map (\photo -> photo.url) newSelectedPhoto
         newSelectedUrl =
           newSelectedPhoto
           |> Maybe.map .url
-      in ({model | selectedUrl = newSelectedUrl}, Cmd.none)
+      in applyFiltersToModel {model | selectedUrl = newSelectedUrl}
     SetSize thumbnailSize -> ({model | chosenSize = thumbnailSize}, Cmd.none)
     LoadJsonPhotos (Ok photos) ->
-      let _ = Debug.log "Ok: " photos
+      let _ = Debug.log "Ok" photos
       in ({model | photos = photos, selectedUrl = Maybe.map .url (List.head photos)}, Cmd.none)
     LoadJsonPhotos (Err e) ->
-      let _ = Debug.log "Err: " e
+      let _ = Debug.log "Err" e
       in ({model | loadingError = Just "ERROR!!!"}, Cmd.none)
     SetHue newHue -> applyFiltersToModel {model | hue = newHue}
     SetRipple newRipple -> applyFiltersToModel {model | ripple = newRipple}
