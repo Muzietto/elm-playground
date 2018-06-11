@@ -9412,9 +9412,28 @@ var _elm_lang$http$Http$StringPart = F2(
 	});
 var _elm_lang$http$Http$stringPart = _elm_lang$http$Http$StringPart;
 
+var _user$project$PhotoGroove$largeImg = function (maybeUrl) {
+	var _p0 = maybeUrl;
+	if (_p0.ctor === 'Just') {
+		return A2(
+			_elm_lang$html$Html$canvas,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$id('main-canvas'),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('large'),
+					_1: {ctor: '[]'}
+				}
+			},
+			{ctor: '[]'});
+	} else {
+		return _elm_lang$html$Html$text('');
+	}
+};
 var _user$project$PhotoGroove$sizeToString = function (size) {
-	var _p0 = size;
-	switch (_p0.ctor) {
+	var _p1 = size;
+	switch (_p1.ctor) {
 		case 'Small':
 			return 'small';
 		case 'Medium':
@@ -9440,14 +9459,14 @@ var _user$project$PhotoGroove$loggingDecoder = F2(
 		return A2(
 			_elm_lang$core$Json_Decode$andThen,
 			function (ev) {
-				var _p1 = A2(_elm_lang$core$Json_Decode$decodeValue, decoder, ev);
-				if (_p1.ctor === 'Ok') {
-					var _p3 = _p1._0;
-					var _p2 = A2(_elm_lang$core$Debug$log, category, _p3);
-					return _elm_lang$core$Json_Decode$succeed(_p3);
+				var _p2 = A2(_elm_lang$core$Json_Decode$decodeValue, decoder, ev);
+				if (_p2.ctor === 'Ok') {
+					var _p4 = _p2._0;
+					var _p3 = A2(_elm_lang$core$Debug$log, category, _p4);
+					return _elm_lang$core$Json_Decode$succeed(_p4);
 				} else {
 					return _elm_lang$core$Json_Decode$fail(
-						A2(_elm_lang$core$Debug$log, category, _p1._0));
+						A2(_elm_lang$core$Debug$log, category, _p2._0));
 				}
 			},
 			_elm_lang$core$Json_Decode$value);
@@ -9518,29 +9537,6 @@ var _user$project$PhotoGroove$terno = F3(
 		return exp ? trueCond : falseCond;
 	});
 var _user$project$PhotoGroove$urlPrefix = 'http://elm-in-action.com/';
-var _user$project$PhotoGroove$largeImg = function (maybeUrl) {
-	var _p4 = maybeUrl;
-	if (_p4.ctor === 'Just') {
-		return A2(
-			_elm_lang$html$Html$img,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('large'),
-				_1: {
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$src(
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							_user$project$PhotoGroove$urlPrefix,
-							A2(_elm_lang$core$Basics_ops['++'], 'large/', _p4._0))),
-					_1: {ctor: '[]'}
-				}
-			},
-			{ctor: '[]'});
-	} else {
-		return _elm_lang$html$Html$text('');
-	}
-};
 var _user$project$PhotoGroove$setFilters = _elm_lang$core$Native_Platform.outgoingPort(
 	'setFilters',
 	function (v) {

@@ -1,7 +1,7 @@
 -- here we start ch5 - JavaScript image filters
 port module PhotoGroove exposing (..)
 
-import Html exposing (node, Attribute, div, h1, img, text, Html, button, input, label, h3)
+import Html exposing (canvas, node, Attribute, div, h1, img, text, Html, button, input, label, h3)
 import Html.Attributes as Attr exposing (id, class, src, name, max, checked, type_, title)
 import Html.Events exposing (onClick, on, targetValue)
 import Array exposing (Array)
@@ -193,7 +193,8 @@ viewFilter name intToMsg magnitude =
 largeImg : Maybe String -> Html Msg
 largeImg maybeUrl =
   case maybeUrl of
-    Just url -> img [class "large", src (urlPrefix ++ "large/" ++ url)] []
+    -- Just url -> img [class "large", src (urlPrefix ++ "large/" ++ url)] []
+    Just url -> canvas [ id "main-canvas", class "large" ] []
     Nothing -> text ""
 
 view : Model -> Html Msg
